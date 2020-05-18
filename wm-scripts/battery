@@ -16,16 +16,16 @@ BATTERY_PATH=$(upower -e | grep 'BAT0')
 mapfile -t BATTERY_FIELDS < <(upower -i "${BATTERY_PATH}" | grep -E "percentage|capacity" | cut -d':' -f2 | tr -d '[:blank:]|%')
 
 if [[ ${BATTERY_FIELDS[0]} -lt 25 ]]; then
-  printf "\uF244 : %s" "${BATTERY_FIELDS[0]}"
+  printf "\uF244 %s" "${BATTERY_FIELDS[0]}"
 elif [[ ${BATTERY_FIELDS[0]} -lt 50 ]]; then
-  printf "\uF243 : %s" "${BATTERY_FIELDS[0]}"
+  printf "\uF243 %s" "${BATTERY_FIELDS[0]}"
 elif [[ ${BATTERY_FIELDS[0]} -lt 75 ]]; then
-  printf "\uF242 : %s" "${BATTERY_FIELDS[0]}"
+  printf "\uF242 %s" "${BATTERY_FIELDS[0]}"
 elif [[ ${BATTERY_FIELDS[0]} -lt 100 ]]; then
-  printf "\uF241 : %s" "${BATTERY_FIELDS[0]}"
+  printf "\uF241 %s" "${BATTERY_FIELDS[0]}"
 else
-  printf "\uF240 : %s" "${BATTERY_FIELDS[0]}"
+  printf "\uF240 %s" "${BATTERY_FIELDS[0]}"
 fi
 
-printf " \uF295 : %s" "${BATTERY_FIELDS[1]}"
+printf " \uF295 %s" "${BATTERY_FIELDS[1]}"
 
