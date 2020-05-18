@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+# Exit on error. Append "|| true" if you expect an error.
+set -o errexit
+# Exit on error inside any functions or subshells.
+set -o errtrace
+# Catch the error in case mysqldump fails (but gzip succeeds) in `mysqldump |gzip`
+set -o pipefail
+# Do not allow use of undefined vars. Use ${VAR:-} to use an undefined VAR
+set -o nounset
+
+# Turn on traces, useful while debugging but commented out by default
+#set -o xtrace
+
+function netstat() {
+  echo "proto pid port command"
+    # shellcheck disable=SC2010
+    pidlist="${1:-$(ls /proc/ | grep '^[0-9]\+$')}"
+
+    for procid in ${pidlist}; do
+      comm=$(cat /proc/"${procid}"/comm)
+
+      # shellcheck disable=SC2012
+      ls -1 /proc/"${procid}"/fd/ | while read -r fdid; do
+
+        socketfd=$(readlink /proc/"${procid}"/fd/"${fdid}" | grep '^socket' | sed 's/[^0-9]//g')
+
+        if [ -n "${socketfd}" ]; then
+           while read -r hexport; do echo "tcp   $procid   $((0x$hexport)) $comm"; done < /proc/"${procid}"/net/tcp | grep "${socketfd}" | grep -o '[0-9a-fA-F]\{8\}:[0-9a-fA-F]\{4\}\s[0-9a-fA-F]\{8\}:[0-9a-fA-F]\{4\}\s0A' | cut -b10-13 
+
+           while read -r hexport; do echo "tcp6  $procid   $((0x$hexport)) $comm"; done < /proc/"${procid}"/net/tcp6 | grep "${socketfd}" | grep -o '[0-9a-fA-F]\{32\}:[0-9a-fA-F]\{4\}\s[0-9a-fA-F]\{32\}:[0-9a-fA-F]\{4\}\s0A' | cut -b34-37
+
+        fi
+
+      done
+    done
+}
+
+netstat "$@"
+

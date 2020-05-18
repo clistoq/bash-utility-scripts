@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+# Exit on error. Append "|| true" if you expect an error.
+set -o errexit
+# Exit on error inside any functions or subshells.
+set -o errtrace
+# Catch the error in case mysqldump fails (but gzip succeeds) in `mysqldump |gzip`
+set -o pipefail
+# Do not allow use of undefined vars. Use ${VAR:-} to use an undefined VAR
+set -o nounset
+
+# Turn on traces, useful while debugging but commented out by default
+#set -o xtrace
+
+function curl() {
+
+  FULLURL=${1:-}
+
+  if [ "${FULLURL:0:4}" = http ]; then
+
+    PROTO=$(echo "${FULLURL}"|cut -d'/' -f1)//
+    HTTP_HOST=$(echo "${FULLURL}"|cut -d'/' -f3)
+    HTTP_PATH=/$(echo "${FULLURL}"|cut -d'/' -f4-)
+    HOST=$(echo "${HTTP_HOST}":|cut -d: -f1)
+    PORT=$(echo "${HTTP_HOST}":|cut -d: -f2)
+
+    if [ -z "${PORT}" ]; then
+      if [ "${PROTO:0:5}" = https ]; then
+        PORT=443
+      else
+        PORT=80
+      fi
+    fi
+
+  else
+
+    PROTO=http://
+    HTTP_HOST=$(echo "${FULLURL}"|cut -d'/' -f1)
+    HTTP_PATH=/$(echo "${FULLURL}"|cut -d'/' -f2-)
+    HOST=$(echo "${HTTP_HOST}":|cut -d: -f1)
+    PORT=$(echo "${HTTP_HOST}":|cut -d: -f2)
+
+    if [ -z "${PORT}" ]; then
+      PORT=80
+    fi
+
+  fi
+
+  exec 40<>/dev/tcp/"${HOST}"/"${PORT}"
+
+  if [ -e /dev/fd/40 ]; then
+
+    echo -e "GET $HTTP_PATH HTTP/1.1\nHost: $HTTP_HOST\nUser-Agent: j4b0l-curl/0.0.1\nAccept: */*\nConnection: close\n\n">&40
+    cat <&40
+    exec 40>&-
+    return 0
+
+  else
+
+    echo "Cannot open filedescriptor # 40" >&2
+    return 1
+
+  fi
+}
+
+curl "$@"

@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+# Exit on error. Append "|| true" if you expect an error.
+set -o errexit
+# Exit on error inside any functions or subshells.
+set -o errtrace
+# Catch the error in case mysqldump fails (but gzip succeeds) in `mysqldump |gzip`
+set -o pipefail
+# Do not allow use of undefined vars. Use ${VAR:-} to use an undefined VAR
+set -o nounset
+
+# Turn on traces, useful while debugging but commented out by default
+#set -o xtrace
+
+function netcat() {
+  USAGE="${FUNCNAME} host port \nhost - address, IP or domain\nport - port number"
+  
+  if [ -z "$1" ] || [ -z "$2" ]; then
+    echo -e "$USAGE"
+    return 1
+  fi
+
+  host="$1"
+  shift
+  port="$1"
+  shift
+
+  CONN=$(cat < /dev/null > /dev/tcp/"${host}"/"${port}")
+
+  if [ "${CONN}" == 0 ]; then
+    echo "Connection to $host $port successful"
+  fi
+}
+
