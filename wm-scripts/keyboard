@@ -12,6 +12,6 @@ set -o nounset
 # Turn on traces, useful while debugging but commented out by default
 #set -o xtrace
 
-LAYOUT_MASK=$(localectl status | grep 'X11' | cut -d':' -f2 | tr -d '[:blank:]')
+LAYOUT_MASK=$(localectl status | grep 'X11' | cut -d':' -f2 | tr -d '[:blank:]' | tr "[:lower:]" "[:upper:]")
 
-printf "%s" "${LAYOUT_MASK}" | awk '{ print toupper($0) }'
+printf "%s" "${LAYOUT_MASK}"

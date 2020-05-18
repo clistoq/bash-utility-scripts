@@ -12,6 +12,6 @@ set -o nounset
 # Turn on traces, useful while debugging but commented out by default
 #set -o xtrace
 
-MEMORY_USAGE=$(free | awk '/Mem/ { print $3 }')
+MEMORY_USAGE=$(free -h | awk '/Mem/ { print $3 }')
 
-printf "%s" "${MEMORY_USAGE}"
+printf "%s MiB" "${MEMORY_USAGE}"
